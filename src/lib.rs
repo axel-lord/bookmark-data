@@ -1,14 +1,163 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
+//! Data layout and loading.
+
+#![warn(
+    missing_copy_implementations,
+    missing_docs,
+    clippy::unwrap_used,
+    clippy::pedantic,
+    rustdoc::all
+)]
+
+use deepsize::DeepSizeOf;
+use serde::{Deserialize, Serialize};
+use std::{
+    io::{self, Read},
+    mem, result,
+};
+use thiserror::Error;
+use uuid::Uuid;
+
+/// Error type for bookmark data.
+#[must_use]
+#[derive(Error, Debug)]
+pub enum Error {
+    /// Forward for IO errors.
+    #[error(transparent)]
+    IO(#[from] io::Error),
+    /// Forward for message pack deserialization errors.
+    #[error(transparent)]
+    RmpDeserialize(#[from] rmp_serde::decode::Error),
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+/// Result type for bookmark data.
+pub type Result<T = ()> = result::Result<T, Error>;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+/// Layout of file data.
+#[must_use]
+#[derive(Default, Debug, Serialize, Deserialize, DeepSizeOf)]
+pub struct FileData {
+    /// Cache of all tags in use.
+    pub tag: Vec<String>,
+    /// Categories stored.
+    pub category: Vec<CategoryData>,
+    /// Bookmarks stored.
+    pub bookmark: Vec<BookmarkData>,
+}
+
+/// Layout of a category.
+#[must_use]
+#[derive(Default, Debug, Serialize, Deserialize, DeepSizeOf)]
+pub struct CategoryData {
+    /// Name of the category.
+    pub name: String,
+    /// Description/info for the category.
+    pub info: String,
+    /// Identifiers used to define what is in category.
+    pub identifier: IdentifierData,
+    /// Any subcategories of category.
+    pub subcategory: Vec<CategoryData>,
+}
+
+/// Sorting rules for a category.
+#[must_use]
+#[derive(Default, Debug, Serialize, Deserialize, DeepSizeOf)]
+pub struct IdentifierData {
+    /// For a bookmark to belong to a catgory these substrings are required to be in the url of the
+    /// bookmark.
+    pub require: Vec<String>,
+    /// If the url of a bookmark exactly matches one of these strings it will be included in the
+    /// category.
+    pub whole: Vec<String>,
+    /// If the url of a bookmark contains one of these substrings it will be included in the
+    /// category.
+    pub include: Vec<String>,
+}
+
+/// Layout of a bookmark.
+#[must_use]
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BookmarkData {
+    /// The url of the bookmark.
+    pub url: String,
+    /// Description/info for the bookmark, often a display name.
+    pub info: String,
+    /// An identifier used for the bookmark.
+    pub uuid: Uuid,
+    /// Any tags which may be used to find the bookmark.
+    pub tag: Vec<String>,
+}
+
+impl DeepSizeOf for BookmarkData {
+    fn deep_size_of_children(&self, _context: &mut deepsize::Context) -> usize {
+        0
+    }
+
+    fn deep_size_of(&self) -> usize {
+        mem::size_of::<Self>()
+            + self.url.capacity()
+            + self.info.capacity()
+            + self.tag.iter().map(String::capacity).sum::<usize>()
+            + self.tag.capacity() * mem::size_of::<String>()
+    }
+}
+
+impl FileData {
+    /// Load a bookmark file from a path.
+    ///
+    /// # Errors
+    /// If the file does not exist or if it is wrongly formatted.
+    pub fn load(reader: impl Read) -> Result<Self> {
+        Ok(rmp_serde::from_read(reader)?)
+    }
+
+    /// Get the size of loaded data in bytes.
+    #[must_use]
+    pub fn storage_size(&self) -> usize {
+        self.deep_size_of()
+    }
+
+    /// Get a new instance with no data.
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl BookmarkData {
+    /// Create a new instance from a url and some info.
+    pub fn new(url: impl Into<String>, info: impl Into<String>) -> Self {
+        Self {
+            url: url.into(),
+            info: info.into(),
+            ..Default::default()
+        }
+    }
+}
+
+impl CategoryData {
+    /// Create a new instance from a name and some info.
+    pub fn new(name: impl Into<String>, info: impl Into<String>) -> Self {
+        Self {
+            name: name.into(),
+            info: info.into(),
+            ..Default::default()
+        }
+    }
+}
+
+impl IdentifierData {
+    /// Create a new empty instance.
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl Default for BookmarkData {
+    fn default() -> Self {
+        Self {
+            url: String::new(),
+            info: String::new(),
+            uuid: Uuid::new_v4(),
+            tag: Vec::new(),
+        }
     }
 }

@@ -1,8 +1,13 @@
 [package]
-name = "data"
+name = "bookmark-data"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+thiserror = "1.0.38"
+uuid = { version = "1.2.2", features = ["v4", "serde", "fast-rng"] }
+rmp-serde = "1.1.1"
+serde = { version = "1.0.152", features = ["derive"] }
+deepsize = "0.2.0"
