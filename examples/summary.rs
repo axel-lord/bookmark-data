@@ -1,5 +1,5 @@
 use anyhow::Context;
-use bookmark_data::FileData;
+use bookmark_data::file;
 use clap::Parser;
 use std::{fs::File, io::BufReader, path::PathBuf, time::Instant};
 
@@ -23,7 +23,7 @@ fn main() -> anyhow::Result<()> {
     } = Cli::parse();
 
     let t = Instant::now();
-    let data = FileData::load(BufReader::new(
+    let data = file::File::load(BufReader::new(
         File::open(file).with_context(|| "failed to open file")?,
     ))
     .with_context(|| "failed to read file contents to a FileData struct")?;
