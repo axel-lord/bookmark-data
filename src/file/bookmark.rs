@@ -3,42 +3,29 @@
 use std::mem;
 
 use deepsize::DeepSizeOf;
+use derive_new::new;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 /// Layout of a bookmark.
 #[must_use]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, new, Hash, PartialEq, Eq, Clone)]
 pub struct Bookmark {
     /// The url of the bookmark.
     pub url: String,
     /// Description/info for the bookmark, often a display name.
     pub info: String,
     /// An identifier used for the bookmark.
+    #[new(value = "Uuid::new_v4()")]
     pub uuid: Uuid,
     /// Any tags which may be used to find the bookmark.
+    #[new(default)]
     pub tag: Vec<String>,
-}
-
-impl Bookmark {
-    /// Create a new instance from a url and some info.
-    pub fn new(url: impl Into<String>, info: impl Into<String>) -> Self {
-        Self {
-            url: url.into(),
-            info: info.into(),
-            ..Default::default()
-        }
-    }
 }
 
 impl Default for Bookmark {
     fn default() -> Self {
-        Self {
-            url: String::new(),
-            info: String::new(),
-            uuid: Uuid::new_v4(),
-            tag: Vec::new(),
-        }
+        Self::new(String::default(), String::default())
     }
 }
 

@@ -28,7 +28,7 @@ pub type Result<T = ()> = result::Result<T, Error>;
 
 pub use file::{
     bookmark::Bookmark,
-    category::{identifier::Identifier, Category},
+    category::{identifier::List as IdentifierList, Category},
     File,
 };
 

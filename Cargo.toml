@@ -11,6 +11,7 @@ uuid = { version = "1.2.2", features = ["v4", "serde", "fast-rng"] }
 rmp-serde = "1.1.1"
 serde = { version = "1.0.152", features = ["derive"] }
 deepsize = "0.2.0"
+derive-new = "0.5.9"
 
 [dev-dependencies]
 anyhow = "1.0.69"

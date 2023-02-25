@@ -2,18 +2,22 @@
 
 use super::Result;
 use deepsize::DeepSizeOf;
+use derive_new::new;
 use serde::{Deserialize, Serialize};
 use std::io::Read;
 
 /// Layout of file data.
 #[must_use]
-#[derive(Default, Debug, Serialize, Deserialize, DeepSizeOf)]
+#[derive(Default, Debug, Serialize, Deserialize, DeepSizeOf, Hash, PartialEq, Eq, Clone, new)]
 pub struct File {
     /// Cache of all tags in use.
+    #[new(default)]
     pub tag: Vec<String>,
     /// Categories stored.
+    #[new(default)]
     pub category: Vec<category::Category>,
     /// Bookmarks stored.
+    #[new(default)]
     pub bookmark: Vec<bookmark::Bookmark>,
 }
 
@@ -30,11 +34,6 @@ impl File {
     #[must_use]
     pub fn storage_size(&self) -> usize {
         self.deep_size_of()
-    }
-
-    /// Get a new instance with no data.
-    pub fn new() -> Self {
-        Self::default()
     }
 }
 
