@@ -9,7 +9,7 @@ use std::io::Read;
 /// Layout of file data.
 #[must_use]
 #[derive(Default, Debug, Serialize, Deserialize, DeepSizeOf, Hash, PartialEq, Eq, Clone, new)]
-pub struct File {
+pub struct Data {
     /// Cache of all tags in use.
     #[new(default)]
     pub tag: Vec<String>,
@@ -21,7 +21,7 @@ pub struct File {
     pub bookmark: Vec<bookmark::Bookmark>,
 }
 
-impl File {
+impl Data {
     /// Load a bookmark file from a path.
     ///
     /// # Errors

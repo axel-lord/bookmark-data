@@ -26,10 +26,10 @@ pub enum Error {
 /// Result type for bookmark data.
 pub type Result<T = ()> = result::Result<T, Error>;
 
-pub use file::{
+pub use data::{
     bookmark::Bookmark,
     category::{identifier::List as IdentifierList, Category},
-    File,
+    Data,
 };
 
-pub mod file;
+pub mod data;
